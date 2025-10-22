@@ -93,16 +93,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <label class="form-label">Giá</label>
                 <input type="number" name="price" class="form-control" required>
             </div>
-            <label>Ảnh sản phẩm (chọn nhiều ảnh)</label>
-            <input type="file" name="images[]" multiple>
+            <div class="mb-3">
+                <label class="form-label">Ảnh sản phẩm (chọn nhiều ảnh)</label>
+                <input type="file" name="images[]" multiple class="form-control" id="images">
+                <div id="preview" class="d-flex flex-wrap gap-2 mt-2"></div>
+            </div>
             <div class="mb-3">
                 <label class="form-label">Mô tả ngắn</label>
-                <input type="text" name="short_desc" class="form-control" required>
+                <textarea name="short_desc" id="short_desc" class="form-control" rows="3"></textarea>
             </div>
+
             <div class="mb-3">
                 <label class="form-label">Mô tả chi tiết</label>
-                <textarea name="long_desc" class="form-control" rows="5"></textarea>
+                <textarea name="long_desc" id="long_desc" class="form-control" rows="5"></textarea>
             </div>
+
             <div class="mb-3">
                 <label class="form-label">Số lượng</label>
                 <input type="number" name="quantity" class="form-control" value="0" min="0" required>
@@ -120,6 +125,52 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <a href="index.php" class="btn btn-secondary">Quay lại</a>
         </form>
     </div>
+    <script src="https://cdn.ckeditor.com/4.22.1/full/ckeditor.js"></script>
+    <script>
+        CKEDITOR.replace('short_desc', {
+            height: 150,
+            removePlugins: 'elementspath',
+            toolbar: [
+                ['Bold', 'Italic', 'Underline', 'Strike'],
+                ['NumberedList', 'BulletedList'],
+                ['Link', 'Unlink'],
+                ['JustifyLeft', 'JustifyCenter', 'JustifyRight'],
+                ['Format']
+            ]
+        });
+
+        CKEDITOR.replace('long_desc', {
+            height: 250,
+            removePlugins: 'elementspath',
+            toolbar: [
+                ['Bold', 'Italic', 'Underline', 'Strike'],
+                ['NumberedList', 'BulletedList'],
+                ['Link', 'Unlink'],
+                ['JustifyLeft', 'JustifyCenter', 'JustifyRight'],
+                ['Image', 'Table', 'Format']
+            ]
+        });
+
+        const input = document.getElementById('images');
+        const preview = document.getElementById('preview');
+        input.addEventListener('change', e => {
+            preview.innerHTML = '';
+            [...e.target.files].forEach(file => {
+                const reader = new FileReader();
+                reader.onload = ev => {
+                    const img = document.createElement('img');
+                    img.src = ev.target.result;
+                    img.style.width = '100px';
+                    img.style.height = '100px';
+                    img.style.objectFit = 'cover';
+                    img.classList.add('rounded', 'border');
+                    preview.appendChild(img);
+                };
+                reader.readAsDataURL(file);
+            });
+        });
+    </script>
+
 </body>
 
 </html>

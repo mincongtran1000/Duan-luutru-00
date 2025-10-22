@@ -40,37 +40,41 @@ $result = $conn->query($query);
                     <th>Số lượng</th>
                     <th>Giá</th>
                     <th>Thành tiền</th>
+                    <th>Hành động</th>
                 </tr>
             </thead>
-          <tbody>
-    <?php while ($row = $result->fetch_assoc()): ?>
-        <tr>
-            <td>
-                <?php if (!empty($row['main_image'])): ?>
-                    <img src="http://localhost/my_website/uploads/products/<?php echo htmlspecialchars($row['main_image']); ?>"
-                        alt="<?php echo htmlspecialchars($row['product_name']); ?>"
-                        style="width: 80px; height: 80px; object-fit: cover;">
-                <?php else: ?>
-                    <img src="http://localhost/my_website/uploads/no-image.png"
-                        alt="No image"
-                        style="width: 80px; height: 80px; object-fit: cover;">
-                <?php endif; ?>
-            </td>
-            <td><?php echo htmlspecialchars($row['product_name']); ?></td>
-            <td><?php echo htmlspecialchars($row['category_name']); ?></td>
-            <td><?php echo $row['total_quantity']; ?></td>
-            <td><?php echo number_format($row['total_price'] / $row['total_quantity'], 0, ',', '.'); ?> đ</td>
-            <td><?php echo number_format($row['total_price'], 0, ',', '.'); ?> đ</td>
-            <td>
-                <form action="remove_from_cart.php" method="POST">
-                    <input type="hidden" name="product_id" value="<?php echo $row['product_id']; ?>">
-                    <button type="submit" class="btn btn-danger btn-sm">Xóa</button>
-                </form>
-            </td>
-        </tr>
-    <?php endwhile; ?>
-</tbody>
+            <tbody>
+                <?php while ($row = $result->fetch_assoc()): ?>
+                    <tr>
+                        <td>
+                            <?php if (!empty($row['main_image'])): ?>
+                                <img src="http://localhost/my_website/uploads/products/<?php echo htmlspecialchars($row['main_image']); ?>"
+                                    alt="<?php echo htmlspecialchars($row['product_name']); ?>"
+                                    style="width: 80px; height: 80px; object-fit: cover;">
+                            <?php else: ?>
+                                <img src="http://localhost/my_website/uploads/no-image.png"
+                                    alt="No image"
+                                    style="width: 80px; height: 80px; object-fit: cover;">
+                            <?php endif; ?>
+                        </td>
+                        <td><?php echo htmlspecialchars($row['product_name']); ?></td>
+                        <td><?php echo htmlspecialchars($row['category_name']); ?></td>
+                        <td><?php echo $row['total_quantity']; ?></td>
+                        <td><?php echo number_format($row['total_price'] / $row['total_quantity'], 0, ',', '.'); ?> đ</td>
+                        <td><?php echo number_format($row['total_price'], 0, ',', '.'); ?> đ</td>
+                        <td>
+                            <form action="remove_from_cart.php" method="POST">
+                                <input type="hidden" name="product_id" value="<?php echo $row['product_id']; ?>">
+                                <button type="submit" class="btn btn-danger btn-sm">Xóa</button>
+                            </form>
+                        </td>
+                    </tr>
+                <?php endwhile; ?>
+            </tbody>
         </table>
+        <form action="checkout.php" method="POST">
+            <button type="submit" class="btn btn-success btn-lg mt-3">Thanh toán</button>
+        </form>
     <?php else: ?>
         <p class="text-muted">Giỏ hàng của bạn đang trống.</p>
     <?php endif; ?>

@@ -24,27 +24,47 @@ if (!$product) {
     exit;
 }
 
-// Xử lý upload ảnh mới
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['images'])) {
-    foreach ($_FILES['images']['tmp_name'] as $key => $tmpName) {
-        if ($_FILES['images']['error'][$key] === UPLOAD_ERR_OK) {
-            $uploadDir = realpath(__DIR__ . "/../../uploads/") . "/";
-            $fileName = time() . '_' . preg_replace('/[^A-Za-z0-9_\-\.]/', '_', basename($_FILES['images']['name'][$key]));
-            $targetPath = $uploadDir . $fileName;
-
-            if (move_uploaded_file($tmpName, $targetPath)) {
-                $stmt = $conn->prepare("INSERT INTO product_images (product_id, image, is_main) VALUES (?, ?, 0)");
-                $stmt->bind_param("is", $id, $fileName);
-                $stmt->execute();
+        // Xử lý upload ảnh mới
+        // Xử lý upload ảnh mới
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['images'])) {
+            // Kiểm tra và tạo thư mục nếu chưa có
+            $uploadDir = realpath(__DIR__ . "/../../uploads/products/");
+            if ($uploadDir === false) {
+                $uploadDir = __DIR__ . "/../../uploads/products/";
+                mkdir($uploadDir, 0777, true);
             }
-        }
-    }
-    header("Location: edit_img.php?id=$id");
-    exit;
-}
 
-// Lấy danh sách ảnh
-$images = $conn->query("SELECT id, image, is_main FROM product_images WHERE product_id = $id ORDER BY is_main DESC, id ASC");
+            // Kiểm tra xem đã có ảnh chính chưa
+            $check_main = $conn->prepare("SELECT COUNT(*) AS total FROM product_images WHERE product_id = ? AND is_main = 1");
+            $check_main->bind_param("i", $id);
+            $check_main->execute();
+            $has_main = $check_main->get_result()->fetch_assoc()['total'] > 0;
+
+            foreach ($_FILES['images']['tmp_name'] as $key => $tmpName) {
+                if ($_FILES['images']['error'][$key] === UPLOAD_ERR_OK) {
+                    $fileName = time() . '_' . preg_replace('/[^A-Za-z0-9_\-\.]/', '_', basename($_FILES['images']['name'][$key]));
+                    $targetPath = $uploadDir . "/" . $fileName;
+
+                    if (move_uploaded_file($tmpName, $targetPath)) {
+                        // Ảnh đầu tiên và chưa có ảnh chính -> đặt làm ảnh chính
+                        $is_main = (!$has_main && $key === 0) ? 1 : 0;
+                        $stmt = $conn->prepare("INSERT INTO product_images (product_id, image, is_main) VALUES (?, ?, ?)");
+                        $stmt->bind_param("isi", $id, $fileName, $is_main);
+                        $stmt->execute();
+
+                        if ($is_main) {
+                            $has_main = true; // đánh dấu đã có ảnh chính
+                        }
+                    }
+                }
+            }
+
+            header("Location: edit_img.php?id=$id");
+            exit;
+        }
+
+        // Lấy danh sách ảnh
+        $images = $conn->query("SELECT id, image, is_main FROM product_images WHERE product_id = $id ORDER BY is_main DESC, id ASC");
 ?>
 <!doctype html>
 <html lang="vi">

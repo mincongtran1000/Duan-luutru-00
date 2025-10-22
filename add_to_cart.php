@@ -44,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt->bind_param("iii", $product_id, $quantity, $transaction_id);
     $stmt->execute();
 
-    header("Location: cart.php");
+    header("Location: index.php");
     exit;
 }
 ?>

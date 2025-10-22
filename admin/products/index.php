@@ -32,7 +32,7 @@ $result = $conn->query($sql);
 </head>
 
 <body class="bg-light">
-    <div class="container mt-5">
+    <div class="container-fluid mt-2">
         <h2>📦 Quản lý sản phẩm</h2>
         <a href="../index.php" class="btn btn-secondary mb-3">⬅ Quay lại Dashboard</a>
         <a href="add.php" class="btn btn-primary mb-3">➕ Thêm sản phẩm</a>
@@ -71,7 +71,7 @@ $result = $conn->query($sql);
                                     <br><span class="badge bg-danger mt-1">Hết hàng</span>
                                 <?php elseif ($row['quantity'] == 1): ?>
                                     <br><span class="badge bg-warning text-dark mt-1">Còn 1 sản phẩm</span>
-                                
+
                                 <?php endif; ?>
                             </td>
                             <td><?php echo number_format($row['price'], 0, ',', '.'); ?> ₫</td>
@@ -81,7 +81,7 @@ $result = $conn->query($sql);
                                     class="form-control form-control-sm w-50 update-quantity"
                                     data-product-id="<?php echo $row['id']; ?>"
                                     value="<?php echo $row['quantity']; ?>"
-                                    min="0">    
+                                    min="0">
                             </td>
                             <td><?php echo htmlspecialchars($row['category_name']); ?></td>
                             <td>
@@ -96,9 +96,16 @@ $result = $conn->query($sql);
                                     <?php echo $row['is_hidden'] ? '🚫 Ẩn' : '✔️ Hiện'; ?>
                                 </a>
                             </td>
-
-                            <td><?php echo htmlspecialchars($row['short_desc']); ?></td>
-                            <td><?php echo nl2br(htmlspecialchars($row['long_desc'])); ?></td>
+                            <td class="desc-cell">
+                                <div class="desc-short">
+                                    <?php echo htmlspecialchars($row['short_desc']); ?>
+                                </div>
+                            </td>
+                            <td class="desc-cell">
+                                <div class="desc-long">
+                                    <?php echo nl2br(htmlspecialchars($row['long_desc'])); ?>
+                                </div>
+                            </td>
                             <td>
                                 <a href="edit.php?id=<?php echo $row['id']; ?>" class="btn btn-sm btn-warning">Sửa</a>
                                 <a href="edit_img.php?id=<?php echo $row['id']; ?>" class="btn btn-sm btn-secondary">Ảnh chính</a>
@@ -143,7 +150,53 @@ $result = $conn->query($sql);
                 });
             });
         });
+        $(document).ready(function() {
+            $('table').on('click', '.desc-toggle', function() {
+                const cell = $(this).closest('.desc-cell');
+                cell.toggleClass('expanded');
+                $(this).text(cell.hasClass('expanded') ? 'Thu gọn' : 'Xem thêm');
+            });
+
+            // Tự động thêm nút "Xem thêm" cho ô mô tả dài
+            $('.desc-cell div').each(function() {
+                if ($(this).text().length > 80) { // dài hơn 80 ký tự
+                    $(this).after('<span class="desc-toggle">Xem thêm</span>');
+                }
+            });
+        });
     </script>
+    <style>
+        .desc-cell {
+            max-width: 250px;
+            position: relative;
+        }
+
+        .desc-short,
+        .desc-long {
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            /* chỉ hiển thị 2 dòng */
+            -webkit-box-orient: vertical;
+            text-overflow: ellipsis;
+            white-space: normal;
+        }
+
+        .desc-cell.expanded .desc-short,
+        .desc-cell.expanded .desc-long {
+            -webkit-line-clamp: unset;
+            max-height: none;
+        }
+
+        .desc-toggle {
+            color: #007bff;
+            cursor: pointer;
+            font-size: 0.85rem;
+            display: block;
+            margin-top: 3px;
+        }
+    </style>
+
 </body>
 
 </html>

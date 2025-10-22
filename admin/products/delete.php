@@ -23,21 +23,27 @@ if (isset($_GET['id'])) {
         die("⚠️ Không thể xoá sản phẩm này vì đã có đơn hàng liên quan.");
     }
 
-    // Lấy ảnh
-    $stmt = $conn->prepare("SELECT image FROM products WHERE id = ?");
+    // Lấy hình ảnh từ bảng product_images
+    $stmt = $conn->prepare("SELECT image FROM product_images WHERE product_id = ?");
     $stmt->bind_param("i", $id);
     $stmt->execute();
     $result = $stmt->get_result();
-    if ($row = $result->fetch_assoc()) {
+    while ($row = $result->fetch_assoc()) {
         if (!empty($row['image'])) {
-            $imagePath = "../../uploads/" . $row['image'];
+            $imagePath = "../../uploads/products/" . $row['image'];
             if (file_exists($imagePath) && is_file($imagePath)) {
-                unlink($imagePath);
+                unlink($imagePath); // Xóa file hình ảnh khỏi thư mục
             }
         }
     }
+    $stmt->close();
 
-    // Xoá sản phẩm
+    // Xóa hình ảnh trong bảng product_images
+    $stmt = $conn->prepare("DELETE FROM product_images WHERE product_id = ?");
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+
+    // Xóa sản phẩm trong bảng products
     $stmt = $conn->prepare("DELETE FROM products WHERE id = ?");
     $stmt->bind_param("i", $id);
     $stmt->execute();

@@ -57,19 +57,18 @@ if ($category_name !== 'all') {
     <div class="row">
         <?php if ($result && $result->num_rows > 0): ?>
             <?php while ($row = $result->fetch_assoc()): ?>
-                <div class="col-md-4 mb-4">
+                <div class="col-6 col-sm-4 col-md-3 col-lg-custom mb-4">
                     <div class="card h-100 shadow-sm">
                         <!-- thay đổi cấu hình và kích thước ảnh phù hợp với ô chứa sản phẩm -->
                         <?php if (!empty($row['main_image'])): ?>
-                            <img src="uploads/products/<?php echo htmlspecialchars($row['main_image']); ?>"
-                                class="card-img-top"
-                                alt="<?php echo htmlspecialchars($row['name']); ?>"
-                                style="height:350px;object-fit:cover;">
+                            <div class="product-image-wrapper">
+                                <img src="uploads/products/<?php echo htmlspecialchars($row['main_image']); ?>"
+                                    alt="<?php echo htmlspecialchars($row['name']); ?>">
+                            </div>
                         <?php else: ?>
-                            <img src="uploads/no-image.png"
-                                class="card-img-top"
-                                alt="No image"
-                                style="height:200px;object-fit:cover;">
+                            <div class="product-image-wrapper">
+                                <img src="uploads/no-image.png" alt="No image">
+                            </div>
                         <?php endif; ?>
                         <div class="card-body">
                             <h5 class="card-title">
@@ -101,5 +100,36 @@ if ($category_name !== 'all') {
         <?php endif; ?>
     </div>
 </div>
+<style>
+    /* Tùy chỉnh chia 5 cột */
+    @media (min-width: 1200px) {
+        .col-lg-custom {
+            flex: 0 0 20%;
+            max-width: 20%;
+        }
+    }
+
+    .product-image-wrapper {
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        overflow: hidden;
+        border-radius: 10px;
+        border: 1px solid #eee;
+        background-color: #f9f9f9;
+    }
+
+    .product-image-wrapper img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+
+    .product-image-wrapper:hover img {
+        transform: scale(1.05);
+    }
+</style>
+
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <?php include 'includes/footer.php'; ?>
