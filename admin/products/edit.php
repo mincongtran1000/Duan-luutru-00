@@ -14,6 +14,14 @@ $product = $result->fetch_assoc();
 
 if (!$product) die("Sản phẩm không tồn tại!");
 
+// Lấy quà đi kèm
+$sql_gift = "SELECT gift_description FROM product_gifts WHERE product_id = ?";
+$stmt_gift = $conn->prepare($sql_gift);
+$stmt_gift->bind_param("i", $id);
+$stmt_gift->execute();
+$result_gift = $stmt_gift->get_result();
+$gift = $result_gift->fetch_assoc();
+
 // Cập nhật
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name        = trim($_POST['name']);
@@ -24,7 +32,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $category_id = $_POST['category_id'];
     $is_hot      = isset($_POST['is_hot']) ? 1 : 0;
     $is_hidden   = isset($_POST['is_hidden']) ? 1 : 0;
+    $gift_description = trim($_POST['gift_description']); // Quà đi kèm
 
+    // Cập nhật sản phẩm
     $sql_update = "UPDATE products 
                    SET name=?, short_desc=?, long_desc=?, price=?, quantity=?, category_id=?, is_hot=?, is_hidden=? 
                    WHERE id=?";
@@ -43,6 +53,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     );
 
     if ($stmt_update->execute()) {
+        // Cập nhật quà đi kèm
+        if (!empty($gift_description)) {
+            // Kiểm tra xem quà tặng đã tồn tại hay chưa
+            $sql_check_gift = "SELECT id FROM product_gifts WHERE product_id = ?";
+            $stmt_check_gift = $conn->prepare($sql_check_gift);
+            $stmt_check_gift->bind_param("i", $id);
+            $stmt_check_gift->execute();
+            $result_check_gift = $stmt_check_gift->get_result();
+
+            if ($result_check_gift->num_rows > 0) {
+                // Nếu đã tồn tại, cập nhật quà tặng
+                $sql_gift_update = "UPDATE product_gifts SET gift_description = ? WHERE product_id = ?";
+                $stmt_gift_update = $conn->prepare($sql_gift_update);
+                $stmt_gift_update->bind_param("si", $gift_description, $id);
+                $stmt_gift_update->execute();
+            } else {
+                // Nếu chưa tồn tại, thêm mới quà tặng
+                $sql_gift_insert = "INSERT INTO product_gifts (product_id, gift_description) VALUES (?, ?)";
+                $stmt_gift_insert = $conn->prepare($sql_gift_insert);
+                $stmt_gift_insert->bind_param("is", $id, $gift_description);
+                $stmt_gift_insert->execute();
+            }
+        }
+
+        // Xử lý hình ảnh (nếu có)
+        if (!empty($_FILES['images']['name'][0])) {
+            $target_dir = "../../uploads/products/";
+            if (!is_dir($target_dir)) mkdir($target_dir, 0777, true);
+
+            foreach ($_FILES['images']['tmp_name'] as $key => $tmp_name) {
+                if (!empty($_FILES['images']['name'][$key])) {
+                    $filename = time() . "_" . basename($_FILES['images']['name'][$key]);
+                    $target_file = $target_dir . $filename;
+
+                    if (move_uploaded_file($tmp_name, $target_file)) {
+                        // Lưu vào bảng product_images
+                        $stmt_img = $conn->prepare("INSERT INTO product_images (product_id, image) VALUES (?, ?)");
+                        $stmt_img->bind_param("is", $id, $filename);
+                        $stmt_img->execute();
+                    }
+                }
+            }
+        }
+
         header("Location: index.php?msg=updated");
         exit;
     } else {
@@ -109,6 +163,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="mb-3 form-check">
                 <input type="checkbox" class="form-check-input" name="is_hidden" value="1" <?= $product['is_hidden'] ? 'checked' : '' ?>>
                 <label class="form-check-label">Ẩn sản phẩm</label>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Quà đi kèm</label>
+                <textarea name="gift_description" id="gift_description" class="form-control" rows="3"><?= htmlspecialchars($gift['gift_description'] ?? '') ?></textarea>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Ảnh sản phẩm (chọn nhiều ảnh)</label>
+                <input type="file" name="images[]" multiple class="form-control" id="images">
             </div>
 
             <button type="submit" class="btn btn-primary">Lưu thay đổi</button>

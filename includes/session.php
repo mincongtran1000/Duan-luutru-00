@@ -1,18 +1,26 @@
 <?php
-// Kiểm tra xem session đã khởi tạo chưa, tránh lỗi trùng
 if (session_status() === PHP_SESSION_NONE) {
-
-    // ⚙️ Thiết lập session cookie — chỉ sống khi trình duyệt mở
     session_cache_limiter('nocache,private');
     session_set_cookie_params([
-        'lifetime' => 0, // 0 = hết khi tắt trình duyệt
+        'lifetime' => 0,
         'path' => '/',
-        'domain' => '', // để trống nếu dùng localhost
-        'secure' => false, // true nếu website dùng HTTPS
+        'domain' => '',
+        'secure' => false, // true nếu dùng HTTPS
         'httponly' => true,
         'samesite' => 'Lax'
     ]);
 
-    // Bắt đầu session
     session_start();
 }
+
+// ⏰ Giới hạn phiên 30 phút
+$timeout = 1800; // 30 phút
+
+if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity'] > $timeout)) {
+    session_unset();
+    session_destroy();
+    header("Location: login.php?timeout=1");
+    exit;
+}
+
+$_SESSION['last_activity'] = time();

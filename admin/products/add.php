@@ -11,6 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $is_hot     = isset($_POST['is_hot']) ? 1 : 0;
     $is_hidden  = isset($_POST['is_hidden']) ? 1 : 0;
     $category_id = $_POST['category_id'];
+    $gift_description = trim($_POST['gift_description']); // Quà đi kèm
 
     // 1. Insert sản phẩm
     $stmt = $conn->prepare("INSERT INTO products 
@@ -49,6 +50,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
                 }
             }
+        }
+
+        // 4. Lưu quà đi kèm vào bảng product_gifts
+        if (!empty($gift_description)) {
+            $stmt_gift = $conn->prepare("INSERT INTO product_gifts (product_id, gift_description) VALUES (?, ?)");
+            $stmt_gift->bind_param("is", $product_id, $gift_description);
+            $stmt_gift->execute();
         }
 
         header("Location: ../index.php");
@@ -119,6 +127,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="mb-3 form-check">
                 <input type="checkbox" class="form-check-input" name="is_hidden" value="1">
                 <label class="form-check-label">Ẩn sản phẩm (không hiển thị)</label>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Quà đi kèm</label>
+                <input type="text" name="gift_description" class="form-control">
             </div>
 
             <button class="btn btn-success" type="submit">Lưu sản phẩm</button>

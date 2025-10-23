@@ -7,8 +7,19 @@ if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== tru
     exit;
 }
 
-// Lấy danh sách sản phẩm + ảnh đầu tiên
-// Lấy danh sách sản phẩm (hiện tất cả, không lọc is_hidden)
+// --- Thêm vào đầu file, sau khi kiểm tra session ---
+$limit = 6; // số sản phẩm mỗi trang
+$page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
+$offset = ($page - 1) * $limit;
+
+// --- Lấy tổng số sản phẩm ---
+$total_sql = "SELECT COUNT(*) AS total FROM products";
+$total_result = $conn->query($total_sql);
+$total_row = $total_result->fetch_assoc();
+$total_products = $total_row['total'];
+$total_pages = ceil($total_products / $limit);
+
+// --- Lấy danh sách sản phẩm có phân trang ---
 $sql = "SELECT p.*, c.name as category_name,
         (SELECT pi.image 
          FROM product_images pi 
@@ -18,8 +29,9 @@ $sql = "SELECT p.*, c.name as category_name,
         FROM products p
         LEFT JOIN categories c ON p.category_id = c.id
         ORDER BY p.created_at DESC
-        LIMIT 6";
+        LIMIT $limit OFFSET $offset";
 $result = $conn->query($sql);
+
 
 ?>
 <!DOCTYPE html>
@@ -124,8 +136,29 @@ $result = $conn->query($sql);
                     </tr>
                 <?php endif; ?>
             </tbody>
-
         </table>
+        <nav>
+            <ul class="pagination justify-content-center">
+                <?php if ($page > 1): ?>
+                    <li class="page-item">
+                        <a class="page-link" href="?page=<?php echo $page - 1; ?>">« Trước</a>
+                    </li>
+                <?php endif; ?>
+
+                <?php for ($i = 1; $i <= $total_pages; $i++): ?>
+                    <li class="page-item <?php echo ($i == $page) ? 'active' : ''; ?>">
+                        <a class="page-link" href="?page=<?php echo $i; ?>"><?php echo $i; ?></a>
+                    </li>
+                <?php endfor; ?>
+
+                <?php if ($page < $total_pages): ?>
+                    <li class="page-item">
+                        <a class="page-link" href="?page=<?php echo $page + 1; ?>">Tiếp »</a>
+                    </li>
+                <?php endif; ?>
+            </ul>
+        </nav>
+
     </div>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>

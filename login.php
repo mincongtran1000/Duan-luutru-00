@@ -24,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['username'] = $row['username'];
             $_SESSION['email'] = $row['email']; // optional
 
-            setcookie('username', $row['username'], time() + 7 * 24 * 3600, '/');
+            // setcookie('username', $row['username'], time() + 7 * 24 * 3600, '/');
 
             header('Location: index.php');
             exit;
@@ -36,6 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Không tìm thấy username
         $message = 'Tài khoản không tồn tại';
     }
+    
 }
 ?>
 <?php include 'includes/header.php'; ?>
